@@ -1,0 +1,160 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Ntambwe’s Stores Limited – Order Manager</title>
+<style>
+:root{--bg:#f3f5f9;--card:#fff;--tx:#161a2b;--mut:#6a7189;--bd:#e4e7ef;--ac:#e0245e;--nav:#141829;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f111a;--card:#1a1d2a;--tx:#eef0f6;--mut:#9aa1b5;--bd:#2a2f42;--nav:#0b0d15;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f111a;--card:#1a1d2a;--tx:#eef0f6;--mut:#9aa1b5;--bd:#2a2f42;--nav:#0b0d15;color-scheme:dark}
+html,body{margin:0}*{box-sizing:border-box}
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;font-size:15px}
+button,input,select,textarea{font:inherit;color:inherit}
+input,select,textarea{width:100%;padding:9px 11px;border:1px solid var(--bd);border-radius:10px;background:var(--card);margin:3px 0 9px}
+.btn{background:var(--ac);color:#fff;border:0;border-radius:10px;padding:9px 15px;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn.g{background:transparent;color:var(--tx);border:1px solid var(--bd)}.btn.s{padding:5px 10px;font-size:13px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px;margin-bottom:14px}.card h3{margin:0 0 10px;font-size:15px}
+.mut{color:var(--mut);font-size:13px}
+#app{display:flex;min-height:100vh}
+nav{width:220px;background:var(--nav);color:#cdd2e6;padding:16px 10px;position:sticky;top:0;height:100vh;flex-shrink:0}
+nav .logo{padding:6px 10px 18px;font-weight:800;color:#fff;line-height:1.2}nav .logo small{display:block;font-weight:500;color:#8d94ad;font-size:11px}
+nav a{display:block;padding:10px 12px;border-radius:10px;cursor:pointer;margin-bottom:2px}nav a:hover{background:#ffffff14}nav a.on{background:var(--ac);color:#fff}
+.mw{flex:1;min-width:0}.tb{display:flex;gap:8px;align-items:center;padding:12px 18px;background:var(--card);border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:5}
+.tb input{margin:0;flex:1;min-width:0}.tb select{width:auto;margin:0}
+main{padding:18px}.top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}h2{margin:0}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:14px}.kpi{margin:0}.kpi b{display:block;font-size:22px;margin-top:4px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.bar{height:8px;background:var(--bg);border-radius:9px;overflow:hidden;margin:3px 0 10px}.bar i{display:block;height:100%;background:var(--ac)}
+.tbl{overflow-x:auto}table{border-collapse:collapse;width:100%}td,th{padding:9px 8px;border-bottom:1px solid var(--bd);text-align:start;white-space:nowrap}th{color:var(--mut);font-size:12px;text-transform:uppercase}
+.tag{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;background:var(--bg);border:1px solid var(--bd)}.tag.o{background:var(--ac);color:#fff;border-color:var(--ac)}
+.th{width:44px;height:44px;border-radius:9px;background:var(--bg);display:grid;place-items:center;object-fit:cover;flex-shrink:0}
+dialog{border:0;border-radius:16px;max-width:640px;width:95%;background:var(--card);color:var(--tx);padding:20px;max-height:92vh}dialog::backdrop{background:#0009}
+.row{border:1px solid var(--bd);border-radius:12px;padding:10px;margin-bottom:10px}.rh{display:flex;gap:8px;align-items:center}.rh input{margin:0}
+.r3{display:grid;grid-template-columns:90px 70px 1fr;gap:8px;margin-top:8px}.r3 input{margin:0}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#login{display:grid;place-items:center;min-height:100vh;padding:16px;background:linear-gradient(135deg,#e0245e,#6b2cf5)}#login .card{max-width:390px;width:100%;padding:26px}
+.sw{display:inline-block;width:28px;height:28px;border-radius:50%;margin-right:6px;cursor:pointer;border:3px solid transparent}
+@media(max-width:760px){#app{flex-direction:column}nav{width:100%;height:auto;position:static;display:flex;overflow-x:auto;padding:8px}nav .logo{display:none}nav a{white-space:nowrap}.two,.g2{grid-template-columns:1fr}.tb{flex-wrap:wrap}}
+</style></head><body><div id="root"></div><dialog id="dlg"></dialog>
+<script>
+const $=s=>document.querySelector(s),root=$('#root'),dlg=$('#dlg');
+const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const BRAND='Ntambwe’s Stores Limited';
+const COUNTRIES={Zambia:'ZMW','South Africa':'ZAR',Zimbabwe:'USD',Malawi:'USD',Kenya:'KES',Nigeria:'NGN',China:'CNY','United Kingdom':'GBP','Eurozone':'EUR','United States':'USD'};
+const STAT=['Not ordered','Ordered','Shipped','Arrived in Zambia','Collected'],BST=['Collecting orders','Ordered from Shein','In transit','Arrived in Zambia','Closed'];
+const DEF={clients:[],batches:[{id:1,name:'Batch 1',status:BST[0],eta:''}],orders:[],payments:[],seq:1,set:{biz:BRAND,country:'Zambia',currency:'ZMW',theme:'auto',accent:'#e0245e',markup:0,lang:'en',rates:{USD:1,ZMW:27,ZAR:18,CNY:7.2,EUR:.92,GBP:.78,KES:129,NGN:1500}}};
+const K='dash orders clients batches settings signout search newOrder items total paid balance client batch status save cancel edit del addItem payment statement language currency name price qty link date recent top byBatch'.split(' ');
+const LN={en:'English',fr:'Français',pt:'Português',es:'Español',sw:'Kiswahili',zh:'中文',ar:'العربية'};
+const T={
+en:['Dashboard','Orders','Clients','Batches','Settings','Sign out','Search clients, items, batch…','New order','Items','Total','Paid','Balance','Client','Batch','Status','Save','Cancel','Edit','Delete','Add item','Add payment','Statement','Language','Currency','Item name','Price (USD)','Qty','Link','Date','Recent orders','Top clients','Value by batch'],
+fr:['Tableau de bord','Commandes','Clients','Lots','Paramètres','Déconnexion','Rechercher clients, articles, lot…','Nouvelle commande','Articles','Total','Payé','Solde','Client','Lot','Statut','Enregistrer','Annuler','Modifier','Supprimer','Ajouter un article','Ajouter un paiement','Relevé','Langue','Devise','Nom de l’article','Prix (USD)','Qté','Lien','Date','Commandes récentes','Meilleurs clients','Valeur par lot'],
+pt:['Painel','Encomendas','Clientes','Lotes','Definições','Terminar sessão','Pesquisar clientes, artigos, lote…','Nova encomenda','Artigos','Total','Pago','Saldo','Cliente','Lote','Estado','Guardar','Cancelar','Editar','Eliminar','Adicionar artigo','Adicionar pagamento','Extrato','Idioma','Moeda','Nome do artigo','Preço (USD)','Qtd','Link','Data','Encomendas recentes','Melhores clientes','Valor por lote'],
+es:['Panel','Pedidos','Clientes','Lotes','Ajustes','Cerrar sesión','Buscar clientes, artículos, lote…','Nuevo pedido','Artículos','Total','Pagado','Saldo','Cliente','Lote','Estado','Guardar','Cancelar','Editar','Eliminar','Añadir artículo','Añadir pago','Estado de cuenta','Idioma','Moneda','Nombre del artículo','Precio (USD)','Cant.','Enlace','Fecha','Pedidos recientes','Mejores clientes','Valor por lote'],
+sw:['Dashibodi','Oda','Wateja','Makundi','Mipangilio','Toka','Tafuta wateja, bidhaa, kundi…','Oda mpya','Bidhaa','Jumla','Imelipwa','Salio','Mteja','Kundi','Hali','Hifadhi','Ghairi','Hariri','Futa','Ongeza bidhaa','Ongeza malipo','Taarifa','Lugha','Sarafu','Jina la bidhaa','Bei (USD)','Idadi','Kiungo','Tarehe','Oda za hivi karibuni','Wateja wakuu','Thamani kwa kundi'],
+zh:['仪表盘','订单','客户','批次','设置','退出登录','搜索客户、商品、批次…','新订单','商品','总计','已付','余额','客户','批次','状态','保存','取消','编辑','删除','添加商品','添加付款','对账单','语言','货币','商品名称','价格（美元）','数量','链接','日期','最近订单','主要客户','各批次金额'],
+ar:['لوحة التحكم','الطلبات','العملاء','الدفعات','الإعدادات','تسجيل الخروج','ابحث عن العملاء والمنتجات والدفعة…','طلب جديد','المنتجات','الإجمالي','المدفوع','الرصيد','العميل','الدفعة','الحالة','حفظ','إلغاء','تعديل','حذف','إضافة منتج','إضافة دفعة مالية','كشف الحساب','اللغة','العملة','اسم المنتج','السعر (دولار)','الكمية','الرابط','التاريخ','أحدث الطلبات','أفضل العملاء','القيمة لكل دفعة']};
+let user=store.get('pt:sess'),S=null,view='dash',q='',fb='',fc='',fs='',cid=null,D=null;
+const t=k=>{const i=K.indexOf(k),l=T[(S&&S.set.lang)||'en']||T.en;return l[i]||T.en[i]};
+const sha=async x=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(x)))].map(b=>b.toString(16).padStart(2,'0')).join('');
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const today=()=>new Date().toISOString().slice(0,10);
+function save(){store.set('pt:data:'+user,S);window.onSave&&window.onSave()}
+const fmt=v=>{const c=S.set.currency,r=S.set.rates[c]||1;try{return new Intl.NumberFormat(undefined,{style:'currency',currency:c}).format(v*r)}catch(e){return c+' '+(v*r).toFixed(2)}};
+const sub=o=>o.items.reduce((a,i)=>a+i.price*i.qty,0),mk=()=>1+S.set.markup/100,oT=o=>sub(o)*mk();
+const cOrd=c=>S.orders.filter(o=>o.client==c),cT=c=>cOrd(c).reduce((a,o)=>a+oT(o),0),cP=c=>S.payments.filter(p=>p.client==c).reduce((a,p)=>a+p.amount,0);
+const cn=id=>(S.clients.find(c=>c.id==id)||{name:'?'}).name,bn=id=>(S.batches.find(b=>b.id==id)||{name:'?'}).name;
+function theme(){const x=S.set.theme,d=document.documentElement;x==='auto'?d.removeAttribute('data-theme'):d.setAttribute('data-theme',x);d.style.setProperty('--ac',S.set.accent);d.dir=S.set.lang=='ar'?'rtl':'ltr';d.lang=S.set.lang}
+function parse(url){let name='Shein item';try{const seg=decodeURIComponent(new URL(url).pathname.split('/').pop()).replace(/\.html$/,'');if(/-p-\d+/.test(seg))name=seg.replace(/-p-.*$/,'').replace(/-/g,' ').trim()||name}catch(e){}return{name}}
+/* ---------- login ---------- */
+function loginView(mode='in',msg=''){root.innerHTML=`<div id="login"><div class="card"><h2 style="color:var(--ac)">🛍️ ${BRAND}</h2><p class="mut">Order &amp; batch manager – know who owns every item.</p>
+<div style="margin-bottom:10px"><button class="btn s ${mode=='in'?'':'g'}" onclick="loginView('in')">Sign in</button> <button class="btn s ${mode=='up'?'':'g'}" onclick="loginView('up')">Create account</button></div>
+<label class="mut">Gmail address</label><input id="em" type="email" placeholder="you@gmail.com" autocomplete="username"><label class="mut">Password</label><input id="pw" type="password" placeholder="Min 6 characters" autocomplete="current-password">
+<div style="color:#e0245e;min-height:20px">${msg}</div><button class="btn" style="width:100%" onclick="auth('${mode}')">${mode=='in'?'Sign in':'Create account'}</button></div></div>`}
+async function auth(mode){const e=$('#em').value.trim().toLowerCase(),p=$('#pw').value;
+if(!/^[^@\s]+@gmail\.com$/.test(e))return loginView(mode,'Please use a valid Gmail address.');if(p.length<6)return loginView(mode,'Password must be at least 6 characters.');
+const us=store.get('pt:users')||{},h=await sha(e+p);if(mode=='up'){if(us[e])return loginView('up','Account already exists.');us[e]=h;store.set('pt:users',us)}else if(us[e]!==h)return loginView('in','Wrong email or password.');
+user=e;store.set('pt:sess',e);boot()}
+function logout(){user=null;store.set('pt:sess',null);loginView()}
+function norm(){S.set={...DEF.set,...S.set,rates:{...DEF.set.rates,...S.set.rates}};S.orders=S.orders||[];S.payments=S.payments||[];S.seq=S.seq||1;
+if(S.items){const m={};S.items.forEach(i=>{const k=i.client+'|'+i.batch;(m[k]=m[k]||{id:Date.now()+S.orders.length+Object.keys(m).length,no:S.seq++,client:i.client,batch:i.batch,date:today(),status:i.status||STAT[0],items:[]}).items.push({id:i.id,name:i.name,url:i.url,price:i.price,qty:i.qty,img:i.img});if(i.paid)S.payments.push({id:Date.now()+Math.random(),client:i.client,amount:i.price*i.qty*mk(),date:today(),note:'Migrated'})});S.orders.push(...Object.values(m));delete S.items}}
+function boot(){S=store.get('pt:data:'+user)||JSON.parse(JSON.stringify(DEF));norm();theme();draw()}
+/* ---------- shell ---------- */
+const NAV=[['dash','📊','dash'],['orders','📦','orders'],['clients','👥','clients'],['batches','🚚','batches'],['settings','⚙️','settings']];
+function draw(){root.innerHTML=`<div id="app"><nav><div class="logo">🛍️ ${esc(S.set.biz)}<small>Order Manager</small></div>${NAV.map(n=>`<a class="${view==n[0]?'on':''}" onclick="go('${n[0]}')">${n[1]} ${t(n[2])}</a>`).join('')}<a onclick="logout()">🚪 ${t('signout')}</a></nav>
+<div class="mw"><div class="tb"><input id="gs" type="search" placeholder="🔍 ${t('search')}" value="${esc(q)}" oninput="gsearch(this.value)"><select onchange="setLang(this.value)">${Object.keys(LN).map(l=>`<option value="${l}" ${S.set.lang==l?'selected':''}>${LN[l]}</option>`).join('')}</select><button class="btn" onclick="openOrder()">+ ${t('newOrder')}</button></div><main id="mn">${V[view]()}</main></div></div>`}
+const dm=()=>{$('#mn').innerHTML=V[view]()};
+function go(v){view=v;cid=null;if(v!='orders')q='';draw()}
+function gsearch(v){q=v;if(view!='orders'){view='orders';cid=null;draw();const g=$('#gs');g.focus();g.setSelectionRange(v.length,v.length)}else dm()}
+function setLang(l){S.set.lang=l;save();theme();draw()}
+const bar=(v,m)=>`<div class="bar"><i style="width:${m?v/m*100:0}%"></i></div>`;
+const orow=o=>`<tr><td>#${o.no}</td><td>${esc(cn(o.client))}</td><td>${esc(bn(o.batch))}</td><td>${o.items.length}</td><td><b>${fmt(oT(o))}</b></td><td><span class="tag">${o.status}</span></td><td>${o.date}</td><td><button class="btn g s" onclick="openOrder(${o.id})">${t('edit')}</button> <button class="btn g s" onclick="delOrder(${o.id})">✕</button></td></tr>`;
+const V={
+dash(){const rev=S.orders.reduce((a,o)=>a+oT(o),0),col=S.payments.reduce((a,p)=>a+p.amount,0),nI=S.orders.reduce((a,o)=>a+o.items.length,0);
+const kp=[['📦',t('orders'),S.orders.length],['🛍️',t('items'),nI],['👥',t('clients'),S.clients.length],['💰',t('total'),fmt(rev)],['✅',t('paid'),fmt(col)],['⏳',t('balance'),fmt(rev-col)]];
+const bv=S.batches.map(b=>[b,S.orders.filter(o=>o.batch==b.id).reduce((a,o)=>a+oT(o),0)]),mx=Math.max(0,...bv.map(x=>x[1]));
+const tc=S.clients.map(c=>[c,cT(c.id)]).sort((a,b)=>b[1]-a[1]).slice(0,5);
+return `<div class="top"><div><h2>${esc(S.set.biz)}</h2><span class="mut">${esc(S.set.country)} · ${S.set.currency}</span></div></div>
+<div class="kpis">${kp.map(k=>`<div class="card kpi"><span class="mut">${k[0]} ${k[1]}</span><b>${k[2]}</b></div>`).join('')}</div>
+<div class="two"><div class="card"><h3>${t('byBatch')}</h3>${bv.map(x=>`<div style="display:flex;justify-content:space-between"><span>${esc(x[0].name)}</span><b>${fmt(x[1])}</b></div>${bar(x[1],mx)}`).join('')}</div>
+<div class="card"><h3>${t('status')}</h3>${STAT.map(s=>{const n=S.orders.filter(o=>o.status==s).length;return `<div style="display:flex;justify-content:space-between"><span>${s}</span><b>${n}</b></div>${bar(n,S.orders.length)}`}).join('')}</div></div>
+<div class="two"><div class="card"><h3>${t('top')}</h3>${tc.map(x=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--bd)"><a style="cursor:pointer" onclick="openClient(${x[0].id})">👤 ${esc(x[0].name)}</a><span>${fmt(x[1])} <span class="mut">(${t('balance')} ${fmt(x[1]-cP(x[0].id))})</span></span></div>`).join('')||'<span class="mut">—</span>'}</div>
+<div class="card"><h3>${t('recent')}</h3><div class="tbl"><table>${S.orders.slice(-6).reverse().map(o=>`<tr><td>#${o.no}</td><td>${esc(cn(o.client))}</td><td>${esc(bn(o.batch))}</td><td>${fmt(oT(o))}</td></tr>`).join('')||'<tr><td class="mut">—</td></tr>'}</table></div></div></div>`},
+orders(){const s=q.toLowerCase(),l=S.orders.filter(o=>(!fb||o.batch==fb)&&(!fc||o.client==fc)&&(!fs||o.status==fs)&&(!s||('#'+o.no+' '+cn(o.client)+' '+bn(o.batch)+' '+o.items.map(i=>i.name).join(' ')).toLowerCase().includes(s))).reverse();
+return `<div class="top"><h2>${t('orders')} <span class="mut">(${l.length})</span></h2><button class="btn" onclick="openOrder()">+ ${t('newOrder')}</button></div>
+<div class="card g2" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))"><select style="margin:0" onchange="fb=this.value;dm()"><option value="">${t('batch')}: all</option>${S.batches.map(b=>`<option value="${b.id}" ${fb==b.id?'selected':''}>${esc(b.name)}</option>`).join('')}</select>
+<select style="margin:0" onchange="fc=this.value;dm()"><option value="">${t('client')}: all</option>${S.clients.map(b=>`<option value="${b.id}" ${fc==b.id?'selected':''}>${esc(b.name)}</option>`).join('')}</select>
+<select style="margin:0" onchange="fs=this.value;dm()"><option value="">${t('status')}: all</option>${STAT.map(b=>`<option ${fs==b?'selected':''}>${b}</option>`).join('')}</select></div>
+<div class="card tbl"><table><tr><th>#</th><th>${t('client')}</th><th>${t('batch')}</th><th>${t('items')}</th><th>${t('total')}</th><th>${t('status')}</th><th>${t('date')}</th><th></th></tr>${l.map(orow).join('')||'<tr><td colspan="8" class="mut">—</td></tr>'}</table></div>`},
+clients(){if(cid)return clientDetail();const s=q.toLowerCase();return `<div class="top"><h2>${t('clients')}</h2><button class="btn" onclick="clientDlg()">+ ${t('client')}</button></div>
+<div class="card tbl"><table><tr><th>${t('client')}</th><th>${t('orders')}</th><th>${t('total')}</th><th>${t('paid')}</th><th>${t('balance')}</th><th></th></tr>${S.clients.map(c=>`<tr><td><b>👤 ${esc(c.name)}</b> <span class="mut">${esc(c.phone||'')}</span></td><td>${cOrd(c.id).length}</td><td>${fmt(cT(c.id))}</td><td>${fmt(cP(c.id))}</td><td><b>${fmt(cT(c.id)-cP(c.id))}</b></td><td><button class="btn g s" onclick="openClient(${c.id})">Open</button></td></tr>`).join('')||'<tr><td class="mut">—</td></tr>'}</table></div>`},
+batches(){return `<div class="top"><h2>${t('batches')}</h2><button class="btn" onclick="batchDlg()">+ ${t('batch')}</button></div>${S.batches.map(b=>{const os=S.orders.filter(o=>o.batch==b.id),by={};os.forEach(o=>by[o.client]=(by[o.client]||0)+oT(o));return `<div class="card"><div class="top" style="margin:0"><div><b>🚚 ${esc(b.name)}</b> <span class="tag">${b.status}</span> <span class="mut">${b.eta?'ETA '+b.eta:''}</span></div><div><button class="btn g s" onclick="batchDlg(${b.id})">${t('edit')}</button> <button class="btn g s" onclick="delBatch(${b.id})">✕</button></div></div>
+<div class="mut" style="margin:6px 0">${os.length} ${t('orders')} · ${fmt(os.reduce((a,o)=>a+oT(o),0))}</div>${Object.keys(by).map(k=>`<span class="tag o">${esc(cn(k))}: ${fmt(by[k])}</span> `).join('')}</div>`}).join('')}`},
+settings(){const s=S.set;return `<div class="top"><h2>${t('settings')}</h2></div>
+<div class="card"><h3>Business</h3><input value="${esc(s.biz)}" onchange="S.set.biz=this.value;save();draw()"><input value="${esc(user)}" disabled></div>
+<div class="card"><h3>${t('language')} / Region / ${t('currency')}</h3><div class="g2"><div><label class="mut">${t('language')}</label><select onchange="setLang(this.value)">${Object.keys(LN).map(l=>`<option value="${l}" ${s.lang==l?'selected':''}>${LN[l]}</option>`).join('')}</select></div>
+<div><label class="mut">Country</label><select onchange="S.set.country=this.value;S.set.currency=COUNTRIES[this.value];save();draw()">${Object.keys(COUNTRIES).map(c=>`<option ${s.country==c?'selected':''}>${c}</option>`).join('')}</select></div>
+<div><label class="mut">${t('currency')}</label><select onchange="S.set.currency=this.value;save();draw()">${Object.keys(s.rates).map(c=>`<option ${s.currency==c?'selected':''}>${c}</option>`).join('')}</select></div>
+<div><label class="mut">Service fee / markup (%)</label><input type="number" min="0" value="${s.markup}" onchange="S.set.markup=+this.value||0;save()"></div></div>
+<label class="mut">Exchange rates (1 USD = …)</label><div class="g2">${Object.keys(s.rates).filter(c=>c!='USD').map(c=>`<div><span class="mut">${c}</span><input type="number" step="any" value="${s.rates[c]}" onchange="S.set.rates['${c}']=+this.value||1;save()"></div>`).join('')}</div></div>
+<div class="card"><h3>Theme</h3><select onchange="S.set.theme=this.value;save();theme()">${['auto','light','dark'].map(x=>`<option ${s.theme==x?'selected':''}>${x}</option>`).join('')}</select><div>${['#e0245e','#6b2cf5','#0a84ff','#16a34a','#f59e0b','#111827'].map(c=>`<span class="sw" style="background:${c};${s.accent==c?'border-color:var(--tx)':''}" onclick="S.set.accent='${c}';save();theme();draw()"></span>`).join('')}</div></div>
+<div class="card"><h3>Data</h3><button class="btn g" onclick="csv()">⬇ CSV</button> <button class="btn g" onclick="if(confirm('Delete ALL data?')){S=JSON.parse(JSON.stringify(DEF));save();draw()}">Reset</button></div>`}};
+/* ---------- client portal ---------- */
+function openClient(id){cid=id;view='clients';q='';draw()}
+function clientDetail(){const c=S.clients.find(x=>x.id==cid),os=cOrd(cid),T0=cT(cid),P=cP(cid);
+return `<div class="top"><div><button class="btn g s" onclick="cid=null;dm()">←</button> <h2 style="display:inline">👤 ${esc(c.name)}</h2> <span class="mut">${esc(c.phone||'')}</span></div><div><button class="btn" onclick="openOrder(0,${c.id})">+ ${t('newOrder')}</button> <button class="btn g" onclick="stmt(${c.id})">📋 ${t('statement')}</button> <button class="btn g" onclick="clientDlg(${c.id})">${t('edit')}</button></div></div>
+<div class="kpis"><div class="card kpi"><span class="mut">${t('orders')}</span><b>${os.length}</b></div><div class="card kpi"><span class="mut">${t('items')}</span><b>${os.reduce((a,o)=>a+o.items.length,0)}</b></div><div class="card kpi"><span class="mut">${t('total')}</span><b>${fmt(T0)}</b></div><div class="card kpi"><span class="mut">${t('paid')}</span><b>${fmt(P)}</b></div><div class="card kpi"><span class="mut">${t('balance')}</span><b>${fmt(T0-P)}</b></div></div>
+${os.map(o=>`<div class="card"><div class="top" style="margin-bottom:6px"><div><b>#${o.no}</b> <span class="tag o">${esc(bn(o.batch))}</span> <span class="tag">${o.status}</span> <span class="mut">${o.date}</span></div><div><button class="btn g s" onclick="openOrder(${o.id})">${t('edit')}</button></div></div>
+<div class="tbl"><table>${o.items.map(i=>`<tr><td>${i.img?`<img class="th" src="${i.img}">`:'🛍️'}</td><td style="white-space:normal;text-transform:capitalize">${i.url?`<a href="${esc(i.url)}" target="_blank" rel="noopener">${esc(i.name)}</a>`:esc(i.name)}</td><td>${i.qty}×</td><td>${fmt(i.price*mk())}</td><td><b>${fmt(i.price*i.qty*mk())}</b></td></tr>`).join('')}<tr><td colspan="4" align="end"><b>${t('total')}</b></td><td><b>${fmt(oT(o))}</b></td></tr></table></div></div>`).join('')}
+<div class="card"><div class="top" style="margin-bottom:6px"><h3 style="margin:0">${t('paid')}</h3><button class="btn s" onclick="payDlg(${c.id})">+ ${t('payment')}</button></div>${S.payments.filter(p=>p.client==cid).map(p=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--bd)"><span>${p.date} <span class="mut">${esc(p.note||'')}</span></span><span>${fmt(p.amount)} <a style="cursor:pointer" onclick="S.payments=S.payments.filter(x=>x.id!=${p.id});save();dm()">✕</a></span></div>`).join('')||'<span class="mut">—</span>'}</div>`}
+/* ---------- dialogs ---------- */
+const show=h=>{dlg.innerHTML=h;if(!dlg.open)dlg.showModal()},dclose=()=>dlg.close();
+function clientDlg(id){const c=S.clients.find(x=>x.id==id)||{name:'',phone:''};show(`<h3>${t('client')}</h3><input id="cname" placeholder="${t('name')}" value="${esc(c.name)}"><input id="cph" placeholder="Phone / WhatsApp" value="${esc(c.phone||'')}"><button class="btn" onclick="saveClient(${id||0})">${t('save')}</button> <button class="btn g" onclick="dclose()">${t('cancel')}</button>`)}
+function saveClient(id){const n=$('#cname').value.trim();if(!n)return;if(id){const c=S.clients.find(x=>x.id==id);c.name=n;c.phone=$('#cph').value}else S.clients.push({id:Date.now(),name:n,phone:$('#cph').value});save();dclose();draw()}
+function batchDlg(id){const b=S.batches.find(x=>x.id==id)||{name:'Batch '+(S.batches.length+1),status:BST[0],eta:''};show(`<h3>${t('batch')}</h3><label class="mut">${t('batch')} (number / name)</label><input id="bname" value="${esc(b.name)}"><label class="mut">${t('status')}</label><select id="bst">${BST.map(s=>`<option ${b.status==s?'selected':''}>${s}</option>`).join('')}</select><label class="mut">ETA</label><input id="beta" type="date" value="${b.eta||''}"><button class="btn" onclick="saveBatch(${id||0})">${t('save')}</button> <button class="btn g" onclick="dclose()">${t('cancel')}</button>`)}
+function saveBatch(id){const n=$('#bname').value.trim();if(!n)return;const v={name:n,status:$('#bst').value,eta:$('#beta').value};if(id)Object.assign(S.batches.find(x=>x.id==id),v);else S.batches.push({id:Date.now(),...v});save();dclose();draw()}
+function delBatch(id){if(S.orders.some(o=>o.batch==id))return alert('Move this batch’s orders to another batch first (edit each order).');S.batches=S.batches.filter(b=>b.id!=id);save();draw()}
+function payDlg(c){show(`<h3>${t('payment')}</h3><label class="mut">${S.set.currency}</label><input id="pa" type="number" step="any"><input id="pd" type="date" value="${today()}"><input id="pn" placeholder="Note (e.g. Airtel Money)"><button class="btn" onclick="savePay(${c})">${t('save')}</button> <button class="btn g" onclick="dclose()">${t('cancel')}</button>`)}
+function savePay(c){const a=+$('#pa').value;if(!a)return;S.payments.push({id:Date.now(),client:c,amount:a/(S.set.rates[S.set.currency]||1),date:$('#pd').value,note:$('#pn').value});save();dclose();dm()}
+function delOrder(id){if(confirm('Delete this order?')){S.orders=S.orders.filter(o=>o.id!=id);save();dm()}}
+function stmt(id){const c=S.clients.find(x=>x.id==id);let x=`${S.set.biz}\n${t('statement')} – ${c.name}\n`;cOrd(id).forEach(o=>{x+=`\n#${o.no} · ${bn(o.batch)} · ${o.date} · ${o.status}\n`+o.items.map(i=>`  • ${i.name} ${i.qty}× = ${fmt(i.price*i.qty*mk())}`).join('\n')+`\n  ${t('total')}: ${fmt(oT(o))}\n`});
+x+=`\n${t('total')}: ${fmt(cT(id))}\n${t('paid')}: ${fmt(cP(id))}\n${t('balance')}: ${fmt(cT(id)-cP(id))}`;show(`<h3>${t('statement')}</h3><textarea id="st" rows="14">${esc(x)}</textarea><button class="btn" onclick="navigator.clipboard&&navigator.clipboard.writeText($('#st').value);this.textContent='✓'">Copy / WhatsApp</button> <button class="btn g" onclick="dclose()">OK</button>`)}
+function csv(){const r=[['Order','Client','Batch','Date','Status','Item','Qty','Unit USD','Link']];S.orders.forEach(o=>o.items.forEach(i=>r.push([o.no,cn(o.client),bn(o.batch),o.date,o.status,i.name,i.qty,i.price,i.url])));
+const b=new Blob([r.map(x=>x.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\n')],{type:'text/csv'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='orders.csv';a.click()}
+/* ---------- order editor ---------- */
+const blank=()=>({id:Date.now()+Math.random(),name:'',url:'',price:0,qty:1,img:''});
+function openOrder(id,cl){D=id?JSON.parse(JSON.stringify(S.orders.find(o=>o.id==id))):{id:0,client:cl||(S.clients[0]||{}).id||'new',batch:S.batches[S.batches.length-1].id,status:STAT[0],date:today(),items:[blank()]};drawEd()}
+function rows(){return D.items.map((it,i)=>`<div class="row"><div class="rh">${it.img?`<img class="th" src="${it.img}">`:'<div class="th">🛍️</div>'}<input placeholder="${t('name')}" value="${esc(it.name)}" oninput="D.items[${i}].name=this.value"><button class="btn g s" onclick="D.items.splice(${i},1);rr()">✕</button></div>
+<div class="r3"><input type="number" step="any" min="0" placeholder="${t('price')}" value="${it.price||''}" oninput="D.items[${i}].price=+this.value;tt()"><input type="number" min="1" value="${it.qty}" oninput="D.items[${i}].qty=+this.value||1;tt()"><input placeholder="${t('link')}" value="${esc(it.url)}" oninput="D.items[${i}].url=this.value"></div>
+<div><input type="file" accept="image/*" style="width:auto;margin:6px 0 0" onchange="photo(${i},this)">${window.aiRow?` <button class="btn g s" onclick="aiRow(${i})">🤖 AI</button>`:''}</div></div>`).join('')}
+const tt=()=>{$('#dt').textContent=fmt(sub(D)*mk())},rr=()=>{$('#rows').innerHTML=rows();tt()};
+function drawEd(){show(`<h3>${D.id?t('edit')+' #'+D.no:t('newOrder')}</h3><div class="g2"><div><label class="mut">${t('client')}</label><select onchange="setC(this.value)">${S.clients.map(c=>`<option value="${c.id}" ${D.client==c.id?'selected':''}>${esc(c.name)}</option>`).join('')}<option value="new" ${D.client=='new'?'selected':''}>+ ${t('client')}…</option></select></div>
+<div><label class="mut">${t('batch')}</label><select onchange="setB(this.value)">${S.batches.map(b=>`<option value="${b.id}" ${D.batch==b.id?'selected':''}>${esc(b.name)}</option>`).join('')}<option value="new">+ ${t('batch')}…</option></select></div>
+<div><label class="mut">${t('status')}</label><select onchange="D.status=this.value">${STAT.map(s=>`<option ${D.status==s?'selected':''}>${s}</option>`).join('')}</select></div>
+<div><label class="mut">${t('date')}</label><input type="date" value="${D.date}" onchange="D.date=this.value"></div></div>
+<label class="mut">Paste many Shein links (one per line)</label><textarea id="ln" rows="2"></textarea><button class="btn g s" onclick="addLinks()">+ ${t('link')}s → ${t('items')}</button>
+<div id="rows" style="margin-top:10px;max-height:38vh;overflow:auto">${rows()}</div><button class="btn g s" onclick="D.items.push(blank());rr()">+ ${t('addItem')}</button>
+<div class="top" style="margin-top:12px"><b>${t('total')}: <span id="dt"></span></b><div><button class="btn" onclick="saveOrder()">${t('save')}</button> <button class="btn g" onclick="dclose()">${t('cancel')}</button></div></div>`);tt()}
+function setC(v){if(v=='new'){const n=prompt(t('name'));if(!n)return drawEd();const id=Date.now();S.clients.push({id,name:n.trim(),phone:''});D.client=id}else D.client=v;drawEd()}
+function setB(v){if(v=='new'){const n=prompt(t('batch'),'Batch '+(S.batches.length+1));if(!n)return drawEd();const id=Date.now();S.batches.push({id,name:n,status:BST[0],eta:''});D.batch=id}else D.batch=v;drawEd()}
+function addLinks(){const ls=$('#ln').value.split('\n').map(x=>x.trim()).filter(Boolean);if(!ls.length)return;D.items=D.items.filter(i=>i.name||i.url||i.price);ls.forEach(u=>D.items.push({...blank(),id:Date.now()+Math.random(),url:u,name:parse(u).name}));$('#ln').value='';rr()}
+function photo(i,el){const f=el.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas'),k=120/Math.max(im.width,im.height);c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);D.items[i].img=c.toDataURL('image/jpeg',.7);rr()};im.src=r.result};r.readAsDataURL(f)}
+function saveOrder(){if(!D.client||D.client=='new')return alert(t('client')+'?');D.items=D.items.filter(i=>i.name||i.price||i.url);if(!D.items.length)return alert(t('items')+'?');D.items.forEach(i=>{if(!i.name)i.name='Shein item'});
+if(D.id){S.orders[S.orders.findIndex(o=>o.id==D.id)]=D}else{D.id=Date.now();D.no=S.seq++;S.orders.push(D)}save();dclose();draw()}
+user&&store.get('pt:users')?.[user]?boot():loginView();
+</script></body></html>
